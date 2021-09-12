@@ -140,9 +140,9 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
       # classic, devmode and jailmode params are only available for istall, refresh, revert actions.
       if %w[install refresh revert].include?(action)
-        request['classic'] = options['classic'] if options['classic']
-        request['devmode'] = options['devmode'] if options['devmode']
-        request['jailmode'] = options['jailmode'] if options['jailmode']
+        request['classic'] = true if options.include?('--classic')
+        request['devmode'] = true if options.include?('--devmode')
+        request['jailmode'] = true if options.include?('--jailmode')
       end
     end
 
