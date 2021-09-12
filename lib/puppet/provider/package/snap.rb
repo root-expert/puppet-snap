@@ -133,12 +133,11 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     request = { 'action' => action }
 
     if options
-      channel = options['channel']
-      if channel && channel != 'stable' && %w[install refresh].include?(action)
-        request['channel'] = options['channel']
+      if (channel = options.find { |e| %r{--channel} =~ e })
+        request['channel'] = channel.split('=')[1]
       end
 
-      # classic, devmode and jailmode params are only available for istall, refresh, revert actions.
+      # classic, devmode and jailmode params are only available for install, refresh, revert actions.
       if %w[install refresh revert].include?(action)
         request['classic'] = true if options.include?('--classic')
         request['devmode'] = true if options.include?('--devmode')
