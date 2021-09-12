@@ -1,4 +1,5 @@
 require 'puppet/provider/package'
+require 'net/http'
 require 'socket'
 require 'json'
 
@@ -51,30 +52,29 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   end
 
   def self.call_api(method, url, data = nil)
-    request = "#{method} #{url} HTTP/1.1\r\n" \
-"Host: localhost\r\n" \
-"Accept: application/json\r\n" \
-"Content-Type: application/json\r\n"
+    socket = Net::BufferedIO.new(UNIXSocket.new('/run/snapd.socket'))
 
-    if method == 'POST'
-      post_data = data.to_json.to_s
-      # Add Content-Length Header since we have some payload
-      request << "Content-Length: #{post_data.bytesize}\r\n\r\n#{post_data}"
+    request = if method == 'POST'
+                req = Net::HTTP::Post.new(url)
+                req.body = data.to_json
+                req
+              else
+                Net::HTTP::Get.new(url)
+              end
+
+    request['Host'] = 'localhost'
+    request['Accept'] = 'application/json'
+    request['Content-Type'] = 'application/json'
+    request.exec(socket, '1.1', url)
+
+    response = nil
+    loop do
+      response = Net::HTTPResponse.read_new(socket)
+      break unless response.is_a?(Net::HTTPContinue)
     end
-    # HTTP headers should end with blank line
-    request << "\r\n"
+    response.reading_body(socket, request.response_body_permitted?) {}
 
-    res = nil
-    UNIXSocket.open('/run/snapd.socket') do |socket|
-      socket.write(request)
-      reply = socket.recv(8192)
-
-      # Strip HTTP headers
-      res = reply.split(%r{\r\n\r\n})[1]
-    end
-
-    raise Puppet::Error, 'There was an error calling Snap API' if res.nil?
-    JSON.parse(res)
+    JSON.parse(response.body)
   end
 
   def self.installed_snaps
