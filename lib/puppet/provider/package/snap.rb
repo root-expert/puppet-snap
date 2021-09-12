@@ -35,15 +35,15 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   end
 
   def install
-    modify_snap('install', @resource[:name], @resource[:install_options])
+    self.class.modify_snap('install', @resource[:name], @resource[:install_options])
   end
 
   def update
-    modify_snap('refresh', @resource[:name], @resource[:install_options])
+    self.class.modify_snap('refresh', @resource[:name], @resource[:install_options])
   end
 
   def uninstall
-    modify_snap('remove', @resource[:name], @resource[:uninstall_options])
+    self.class.modify_snap('remove', @resource[:name], @resource[:uninstall_options])
   end
 
   def purge
