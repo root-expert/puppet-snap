@@ -7,13 +7,10 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   desc "Package management via Snap.
 
     This provider supports the `install_options` attribute, which allows snap's flags to be
-    passed to Snap. Namely `classic`, `dangerous`, `devmode`, `jailmode`, `channel`.
-
-    This provider supports the `uninstall_options` attribute, which allows snap's flags to be
-    passed to Snap. Namely `purge`."
+    passed to Snap. Namely `classic`, `dangerous`, `devmode`, `jailmode`, `channel`."
 
   has_feature :install_options
-  has_feature :uninstall_options
+  has_feature :purgeable
 
   def self.instances
     instances = []
@@ -44,11 +41,12 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   end
 
   def uninstall
-    self.class.modify_snap('remove', @resource[:name], @resource[:uninstall_options])
+    self.class.modify_snap('remove', @resource[:name])
   end
 
+  # Purge differs from remove as it doesn't save snapshot with snap's data.
   def purge
-    uninstall
+    self.class.modify_snap('remove', @resource[:name], ['purge'])
   end
 
   def self.call_api(method, url, data = nil)
@@ -143,12 +141,14 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
         request['devmode'] = true if options.include?('--devmode')
         request['jailmode'] = true if options.include?('--jailmode')
       end
+
+      request['purge'] = true if action == 'remove' && options.include?('purge')
     end
 
     request
   end
 
-  def self.modify_snap(action, name, options)
+  def self.modify_snap(action, name, options = nil)
     req = generate_request(action, options)
     response = call_api('POST', "/v2/snaps/#{name}", req)
     change_id = get_id_from_async_req(response)
