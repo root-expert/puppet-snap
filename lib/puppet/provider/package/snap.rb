@@ -25,6 +25,15 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     instances
   end
 
+  def query
+    instances = self.class.instances
+    instances.each do |instance|
+      return instance if instance.name == @resource[:name]
+    end
+
+    nil
+  end
+
   def install
     modify_snap('install', @resource[:name], @resource[:install_options])
   end
