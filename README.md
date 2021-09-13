@@ -74,6 +74,28 @@ package { 'hello-world':
 }
 ```
 
+To install from specific channel:
+
+```puppet
+package { 'hello-world':
+  ensure          => installed,
+  provider        => 'snap',
+  install_options => ['--channel=beta'],
+}
+```
+
+If you want to install a snap in classic mode:
+
+```puppet
+package { 'hello-world':
+  ensure          => installed,
+  provider        => 'snap',
+  install_options => ['--classic'],
+}
+```
+
+Same applies for options `--jailmode` and `--devmode`
+
 ## Reference
 
 See [REFERENCE](https://github.com/root-expert/puppet-snap/blob/master/REFERENCE.md)
