@@ -4,14 +4,18 @@
 # @param service_ensure The state of the snapd service.
 # @param service_enable Run the system service on boot.
 # @param core_snap_ensure The state of the snap `core`.
+# @param manage_repo Whether we should manage EPEL repo or not.
 class snap (
   String[1]               $package_ensure   = 'installed',
   Stdlib::Ensure::Service $service_ensure   = 'running',
   Boolean                 $service_enable   = true,
-  String[1]               $core_snap_ensure = 'installed'
+  String[1]               $core_snap_ensure = 'installed',
+  Boolean                 $manage_repo      = true,
 ) {
   if $facts['os']['family'] == 'RedHat' {
-    class { 'epel': }
+    if $manage_repo {
+      class { 'epel': }
+    }
 
     file { '/snap':
       ensure  => link,
@@ -19,8 +23,13 @@ class snap (
       require => Package['snapd'],
     }
   }
+
   $package_require = $facts['os']['family'] ? {
-    'RedHat' => Class['epel'],
+    'RedHat' => if $manage_repo {
+      Class['epel']
+    } else {
+      undef
+    },
     default  => undef,
   }
 
