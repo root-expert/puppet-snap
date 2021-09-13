@@ -12,6 +12,12 @@ class snap (
 ) {
   if $facts['os']['family'] == 'RedHat' {
     class { 'epel': }
+
+    file { '/snap':
+      ensure  => link,
+      target  => '/var/lib/snapd/snap',
+      require => Package['snapd'],
+    }
   }
   $package_require = $facts['os']['family'] ? {
     'RedHat' => Class['epel'],
