@@ -14,7 +14,7 @@ describe 'snap' do
         it { is_expected.to contain_package('snapd').with_ensure('installed').that_requires('Class[epel]') }
       else
         it { is_expected.to contain_package('snapd').with_ensure('installed') }
-        it { is_expected.to contain_service('snapd').with_ensure('running').with_enable(true).that_subscribes_to('Package[snapd]') }
+        it { is_expected.to contain_service('snapd').with_ensure('running').with_enable(true).that_requires('Package[snapd]') }
         it { is_expected.to contain_package('core').with_ensure('installed').with_provider('snap').that_requires('Service[snapd]') }
       end
     end
