@@ -57,14 +57,6 @@
       ]
     },
     {
-      "operatingsystem": "FreeBSD",
-      "operatingsystemrelease": [
-        "11",
-        "12",
-        "13"
-      ]
-    },
-    {
       "operatingsystem": "Fedora",
       "operatingsystemrelease": [
         "33",
