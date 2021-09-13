@@ -2,7 +2,7 @@
   "name": "puppet-snap",
   "version": "0.1.0-rc0",
   "author": "root-expert",
-  "summary": "Puppet Snap module",
+  "summary": "Puppet module for installing Snap and managing snap packages.",
   "license": "Apache-2.0",
   "source": "https://github.com/root-expert/puppet-snap",
   "project_page": "https://github.com/root-expert/puppet-snap",
