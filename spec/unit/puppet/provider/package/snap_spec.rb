@@ -38,23 +38,23 @@ describe Puppet::Type.type(:package).provider(:snap) do
   end
 
   context 'installing without any option' do
-    it 'should generate correct request' do
+    it 'generates correct request' do
       response = provider.class.generate_request('install', nil)
-      expect(response).to eq("action" => "install")
+      expect(response).to eq('action' => 'install')
     end
   end
 
   context 'installing with channel option' do
-    it 'should generate correct request' do
+    it 'generates correct request' do
       response = provider.class.generate_request('install', ['--channel=beta'])
-      expect(response).to eq("action" => "install", "channel" => "beta")
+      expect(response).to eq('action' => 'install', 'channel' => 'beta')
     end
   end
 
   context 'installing with classic option' do
-    it 'should generate correct request' do
+    it 'generates correct request' do
       response = provider.class.generate_request('install', ['--classic'])
-      expect(response).to eq("action" => "install", "classic" => true)
+      expect(response).to eq('action' => 'install', 'classic' => true)
     end
   end
 end

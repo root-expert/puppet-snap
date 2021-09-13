@@ -11,7 +11,13 @@ class snap (
   String[1]               $core_snap_ensure = 'installed'
 ) {
   if $facts['os']['family'] == 'RedHat' {
-    include epel
+    class { 'epel': }
+
+    file { '/snap':
+      ensure  => link,
+      target  => '/var/lib/snapd/snap',
+      require => Package['snapd'],
+    }
   }
   $package_require = $facts['os']['family'] ? {
     'RedHat' => Class['epel'],
@@ -24,9 +30,9 @@ class snap (
   }
 
   service { 'snapd':
-    ensure    => $service_ensure,
-    enable    => $service_enable,
-    subscribe => Package['snapd'],
+    ensure  => $service_ensure,
+    enable  => $service_enable,
+    require => Package['snapd'],
   }
 
   package { 'core':
