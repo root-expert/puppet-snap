@@ -66,9 +66,21 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     request.exec(socket, '1.1', url)
 
     response = nil
+    retried = 0
+    max_retries = 5
+    # Read timeout can happen while installing core snap. The snap daemon briefly restarts
+    # which drops the connection to the socket.
     loop do
-      response = Net::HTTPResponse.read_new(socket)
-      break unless response.is_a?(Net::HTTPContinue)
+      begin
+        response = Net::HTTPResponse.read_new(socket)
+        break unless response.is_a?(Net::HTTPContinue)
+      rescue Net::ReadTimeout, Net::OpenTimeout
+        raise Puppet::Error, format("Got timeout wile calling the api #{retried} times! Giving up...") if retried > max_retries
+
+        Puppet.debug('Got timeout while calling the api, retrying...')
+        retried += 1
+        retry
+      end
     end
     response.reading_body(socket, request.response_body_permitted?) {}
 
@@ -113,6 +125,8 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
       case res['result']['status']
       when 'Do', 'Doing', 'Undoing', 'Undo'
         # Still running
+        # Wait a little bit before hitting the API again!
+        sleep(1)
         next
       when 'Abort', 'Hold', 'Error'
         raise Puppet::Error, format('Error while executing the request %s', res)
@@ -121,9 +135,6 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
       else
         raise Puppet::Error, format('Unknown status %s', res)
       end
-
-      # Wait a little bit before hitting the API again!
-      sleep(1)
     end
   end
 
