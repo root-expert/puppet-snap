@@ -36,4 +36,25 @@ describe Puppet::Type.type(:package).provider(:snap) do
       expect(provider).to respond_to(:purge)
     end
   end
+
+  context 'installing without any option' do
+    it 'should generate correct request' do
+      response = provider.class.generate_request('install', nil)
+      expect(response).to eq("action" => "install")
+    end
+  end
+
+  context 'installing with channel option' do
+    it 'should generate correct request' do
+      response = provider.class.generate_request('install', ['--channel=beta'])
+      expect(response).to eq("action" => "install", "channel" => "beta")
+    end
+  end
+
+  context 'installing with classic option' do
+    it 'should generate correct request' do
+      response = provider.class.generate_request('install', ['--classic'])
+      expect(response).to eq("action" => "install", "classic" => true)
+    end
+  end
 end
