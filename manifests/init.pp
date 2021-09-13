@@ -6,11 +6,11 @@
 # @param core_snap_ensure The state of the snap `core`.
 # @param manage_repo Whether we should manage EPEL repo or not.
 class snap (
-  String[1]               $package_ensure   = 'installed',
-  Stdlib::Ensure::Service $service_ensure   = 'running',
-  Boolean                 $service_enable   = true,
-  String[1]               $core_snap_ensure = 'installed',
-  Boolean                 $manage_repo      = true,
+  String[1]                  $package_ensure   = 'installed',
+  Enum['stopped', 'running'] $service_ensure   = 'running',
+  Boolean                    $service_enable   = true,
+  String[1]                  $core_snap_ensure = 'installed',
+  Boolean                    $manage_repo      = true,
 ) {
   if $facts['os']['family'] == 'RedHat' {
     if $manage_repo {
