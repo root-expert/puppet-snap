@@ -1,0 +1,11 @@
+{
+  "type": "sync",
+  "status-code": 200,
+  "status": "OK",
+  "result": {
+    "id": "81",
+    "kind": "install-snap",
+    "summary": "Install \"hello-world\" snap",
+    "status": "Doing"
+  }
+}
