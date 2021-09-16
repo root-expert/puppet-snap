@@ -22,6 +22,7 @@ The following parameters are available in the `snap` class:
 * [`service_ensure`](#service_ensure)
 * [`service_enable`](#service_enable)
 * [`core_snap_ensure`](#core_snap_ensure)
+* [`manage_repo`](#manage_repo)
 
 ##### <a name="package_ensure"></a>`package_ensure`
 
@@ -33,7 +34,7 @@ Default value: `'installed'`
 
 ##### <a name="service_ensure"></a>`service_ensure`
 
-Data type: `Stdlib::Ensure::Service`
+Data type: `Enum['stopped', 'running']`
 
 The state of the snapd service.
 
@@ -54,4 +55,12 @@ Data type: `String[1]`
 The state of the snap `core`.
 
 Default value: `'installed'`
+
+##### <a name="manage_repo"></a>`manage_repo`
+
+Data type: `Boolean`
+
+Whether we should manage EPEL repo or not.
+
+Default value: ``true``
 

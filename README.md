@@ -1,4 +1,13 @@
-# Snap module for Puppet
+# puppet-snap
+
+[![Build Status](https://github.com/root-expert/puppet-snap/workflows/CI/badge.svg)](https://github.com/root-expert/puppet-snap/actions?query=workflow%3ACI)
+[![Release](https://github.com/root-expert/puppet-snap/actions/workflows/release.yml/badge.svg)](https://github.com/root-expert/puppet-snap/actions/workflows/release.yml)
+[![Puppet Forge](https://img.shields.io/puppetforge/v/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
+[![Puppet Forge - downloads](https://img.shields.io/puppetforge/dt/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
+[![Puppet Forge - endorsement](https://img.shields.io/puppetforge/e/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
+[![Puppet Forge - scores](https://img.shields.io/puppetforge/f/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
+[![puppetmodule.info docs](http://www.puppetmodule.info/images/badge.png)](http://www.puppetmodule.info/m/puppet-snap)
+[![Apache-2 License](https://img.shields.io/github/license/root-expert/puppet-snap.svg)](LICENSE)
 
 #### Table of Contents
 
@@ -11,10 +20,12 @@
 4. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
 5. [Limitations - OS compatibility, etc.](#limitations)
 6. [Development - Guide for contributing to the module](#development)
+7. [License and Author](#license)
 
 ## Module Description
 
-This module installs Snap and `core` snap package. Also it provides a packages provider names `snap` for managing snaps.
+This module installs Snap and `core` snap package. Also it provides a package provider, named `snap`, which uses
+the [Snapd REST API](https://snapcraft.io/docs/snapd-api) for managing snaps.
 
 ## Setup
 
@@ -108,3 +119,8 @@ in [metadata.json](https://github.com/root-expert/puppet-snap/blob/master/metada
 ## Development
 
 See [CONTRIBUTING](https://github.com/root-expert/puppet-snap/blob/master/.github/CONTRIBUTING.md)
+
+## License and Author
+
+This module was originally written by [Christos Papageorgiou (root-expert)](https://github.com/root-expert). It's licensed
+under [Apache 2.0](https://github.com/root-expert/puppet-snap/blob/master/LICENSE).
