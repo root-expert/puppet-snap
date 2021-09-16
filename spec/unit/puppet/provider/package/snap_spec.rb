@@ -14,11 +14,11 @@ describe Puppet::Type.type(:package).provider(:snap) do
     resource.provider
   end
 
-  async_change_id_res = File.read(File.expand_path(File.join(File.dirname(__FILE__), '../../../../fixtures/responses/async_change_id_res.json')))
-  error_res = File.read(File.expand_path(File.join(File.dirname(__FILE__), '../../../../fixtures/responses/error_res.json')))
-  change_status_doing = File.read(File.expand_path(File.join(File.dirname(__FILE__), '../../../../fixtures/responses/change_status_doing.json')))
-  change_status_done = File.read(File.expand_path(File.join(File.dirname(__FILE__), '../../../../fixtures/responses/change_status_done.json')))
-  change_status_error = File.read(File.expand_path(File.join(File.dirname(__FILE__), '../../../../fixtures/responses/change_status_error.json')))
+  async_change_id_res = JSON.parse(File.read('spec/fixtures/responses/async_change_id_res.json'))
+  error_res = JSON.parse(File.read('spec/fixtures/responses/error_res.json'))
+  change_status_doing = JSON.parse(File.read('spec/fixtures/responses/change_status_doing.json'))
+  change_status_done = JSON.parse(File.read('spec/fixtures/responses/change_status_done.json'))
+  change_status_error = JSON.parse(File.read('spec/fixtures/responses/change_status_error.json'))
 
   context 'should have provider features' do
     it { is_expected.to be_install_options }
@@ -66,24 +66,24 @@ describe Puppet::Type.type(:package).provider(:snap) do
 
   context 'calling async operations' do
     it 'raises an error if response is an error' do
-      expect { provider.class.get_id_from_async_req(JSON.parse(error_res)) }.to raise_error(Puppet::Error)
+      expect { provider.class.get_id_from_async_req(error_res) }.to raise_error(Puppet::Error)
     end
 
     it 'gets correct change id from response' do
-      id = provider.class.get_id_from_async_req(JSON.parse(async_change_id_res))
+      id = provider.class.get_id_from_async_req(async_change_id_res)
       expect(id).to eq('77')
     end
   end
 
   context 'completing async operations' do
     it 'raises an error if response is an error' do
-      allow(described_class).to receive(:get_status).with('10').and_return(JSON.parse(change_status_error))
+      allow(described_class).to receive(:get_status).with('10').and_return(change_status_error)
 
       expect { provider.class.complete('10') }.to raise_error(Puppet::Error)
     end
 
     it 'sleeps for 1 second if response hasn\'t completed' do
-      allow(described_class).to receive(:get_status).with('10').and_return(JSON.parse(change_status_doing), JSON.parse(change_status_done))
+      allow(described_class).to receive(:get_status).with('10').and_return(change_status_doing, change_status_done)
       allow(described_class).to receive(:sleep)
       provider.class.complete('10')
 
