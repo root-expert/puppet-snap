@@ -76,7 +76,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
         response = Net::HTTPResponse.read_new(socket)
         break unless response.is_a?(Net::HTTPContinue)
       rescue Net::ReadTimeout, Net::OpenTimeout
-        raise Puppet::Error, format("Got timeout wile calling the api #{retried} times! Giving up...") if retried > max_retries
+        raise Puppet::Error, "Got timeout wile calling the api #{retried} times! Giving up..." if retried > max_retries
 
         Puppet.debug('Got timeout while calling the api, retrying...')
         retried += 1
@@ -92,7 +92,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     res = call_api('GET', '/v2/snaps')
 
     unless [200, 404].include?(res['status-code'])
-      raise Puppet::Error, format('Could not find installed snaps (code: %s)', res['status-code'])
+      raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})"
     end
 
     res['result'].map { |hash| hash.slice('name', 'version') } if res['status-code'] == 200
@@ -102,7 +102,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   def self.get_id_from_async_req(request)
     # If the request failed raise an error
     if request['type'] == 'error'
-      raise Puppet::Error, format('Request failed with %s', request['result']['message'])
+      raise Puppet::Error, "Request failed with #{request['result']['message']}"
     end
 
     request['change']
@@ -130,11 +130,11 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
         sleep(1)
         next
       when 'Abort', 'Hold', 'Error'
-        raise Puppet::Error, format('Error while executing the request %s', res)
+        raise Puppet::Error, "Error while executing the request #{res}"
       when 'Done'
         completed = true
       else
-        raise Puppet::Error, format('Unknown status %s', res)
+        raise Puppet::Error, "Unknown status #{res}"
       end
     end
   end
