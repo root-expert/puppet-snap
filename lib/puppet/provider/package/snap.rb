@@ -10,8 +10,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     passed to Snap. Namely `classic`, `dangerous`, `devmode`, `jailmode`, `channel`."
 
   commands snap_cmd: '/usr/bin/snap'
-  has_feature :install_options
-  has_feature :purgeable
+  has_feature :installable, :install_options, :uninstallable, :purgeable
 
   def self.instances
     instances = []

@@ -22,7 +22,9 @@ describe Puppet::Type.type(:package).provider(:snap) do
   find_res = JSON.parse(File.read('spec/fixtures/responses/find_res.json'))
 
   context 'should have provider features' do
+    it { is_expected.to be_installable }
     it { is_expected.to be_install_options }
+    it { is_expected.to be_uninstallable }
     it { is_expected.to be_purgeable }
   end
 
