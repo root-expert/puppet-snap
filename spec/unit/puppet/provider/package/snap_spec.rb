@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Puppet::Type.type(:package).provider(:snap) do
-  let(:name) { 'test' }
+  let(:name) { 'hello-world' }
 
   let(:resource) do
     Puppet::Type.type(:package).new(
@@ -19,6 +19,7 @@ describe Puppet::Type.type(:package).provider(:snap) do
   change_status_doing = JSON.parse(File.read('spec/fixtures/responses/change_status_doing.json'))
   change_status_done = JSON.parse(File.read('spec/fixtures/responses/change_status_done.json'))
   change_status_error = JSON.parse(File.read('spec/fixtures/responses/change_status_error.json'))
+  find_res = JSON.parse(File.read('spec/fixtures/responses/find_res.json'))
 
   context 'should have provider features' do
     it { is_expected.to be_install_options }
@@ -88,6 +89,21 @@ describe Puppet::Type.type(:package).provider(:snap) do
       provider.class.complete('10')
 
       expect(described_class).to have_received(:sleep).with(1)
+    end
+  end
+
+  context 'querying for latest version' do
+    it 'with no channel specified returns correct version from stable channel' do
+      allow(described_class).to receive(:call_api).with('GET', '/v2/find?name=hello-world').and_return(find_res)
+
+      expect(provider.latest).to eq('6.4')
+    end
+
+    it 'with channel specified returns correct version from specified channel' do
+      resource[:install_options] = ['--channel=beta']
+      allow(described_class).to receive(:call_api).with('GET', '/v2/find?name=hello-world').and_return(find_res)
+
+      expect(provider.latest).to eq('6.0')
     end
   end
 end

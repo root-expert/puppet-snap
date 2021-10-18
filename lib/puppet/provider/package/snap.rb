@@ -41,6 +41,24 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     self.class.modify_snap('refresh', @resource[:name], @resource[:install_options])
   end
 
+  def latest
+    res = self.class.call_api('GET', "/v2/find?name=#{@resource[:name]}")
+
+    raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
+
+    # Search latest version for the specified channel. If unspecified fallback to stable.c
+    channel = if @resource[:install_options].nil?
+                'stable'
+              else
+                self.class.parse_channel(@resource[:install_options])
+              end
+    selected_channel = res['result'][0]['channels']["latest/#{channel}"]
+    raise Puppet::Error, "No version in channel #{channel}" unless selected_channel
+
+    # Return version
+    selected_channel['version']
+  end
+
   def uninstall
     self.class.modify_snap('remove', @resource[:name])
   end
@@ -143,9 +161,8 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     request = { 'action' => action }
 
     if options
-      if (channel = options.find { |e| %r{--channel} =~ e })
-        request['channel'] = channel.split('=')[1]
-      end
+      channel = parse_channel(options)
+      request['channel'] = channel unless channel.nil?
 
       # classic, devmode and jailmode params are only available for install, refresh, revert actions.
       if %w[install refresh revert].include?(action)
@@ -165,5 +182,13 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     response = call_api('POST', "/v2/snaps/#{name}", req)
     change_id = get_id_from_async_req(response)
     complete(change_id)
+  end
+
+  def self.parse_channel(options)
+    if (channel = options.find { |e| %r{--channel} =~ e })
+      return channel.split('=')[1]
+    end
+
+    nil
   end
 end
