@@ -14,7 +14,7 @@ class snap (
 ) {
   if $facts['os']['family'] == 'RedHat' {
     if $manage_repo {
-      class { 'epel': }
+      include epel
     }
 
     file { '/snap':
@@ -24,18 +24,8 @@ class snap (
     }
   }
 
-  $package_require = $facts['os']['family'] ? {
-    'RedHat' => if $manage_repo {
-      Class['epel']
-    } else {
-      undef
-    },
-    default  => undef,
-  }
-
   package { 'snapd':
     ensure  => $package_ensure,
-    require => $package_require,
   }
 
   service { 'snapd':
