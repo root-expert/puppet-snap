@@ -55,14 +55,14 @@ describe Puppet::Type.type(:package).provider(:snap) do
 
   context 'installing with channel option' do
     it 'generates correct request' do
-      response = provider.class.generate_request('install', ['--channel=beta'])
+      response = provider.class.generate_request('install', ['channel=beta'])
       expect(response).to eq('action' => 'install', 'channel' => 'beta')
     end
   end
 
   context 'installing with classic option' do
     it 'generates correct request' do
-      response = provider.class.generate_request('install', ['--classic'])
+      response = provider.class.generate_request('install', ['classic'])
       expect(response).to eq('action' => 'install', 'classic' => true)
     end
   end
@@ -102,7 +102,7 @@ describe Puppet::Type.type(:package).provider(:snap) do
     end
 
     it 'with channel specified returns correct version from specified channel' do
-      resource[:install_options] = ['--channel=beta']
+      resource[:install_options] = ['channel=beta']
       allow(described_class).to receive(:call_api).with('GET', '/v2/find?name=hello-world').and_return(find_res)
 
       expect(provider.latest).to eq('6.0')

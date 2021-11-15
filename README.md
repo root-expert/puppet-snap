@@ -91,7 +91,7 @@ To install from specific channel:
 package { 'hello-world':
   ensure          => installed,
   provider        => 'snap',
-  install_options => ['--channel=beta'],
+  install_options => ['channel=beta'],
 }
 ```
 
@@ -101,11 +101,11 @@ If you want to install a snap in classic mode:
 package { 'hello-world':
   ensure          => installed,
   provider        => 'snap',
-  install_options => ['--classic'],
+  install_options => ['classic'],
 }
 ```
 
-Same applies for options `--jailmode` and `--devmode`
+Same applies for options `jailmode` and `devmode`
 
 ## Reference
 

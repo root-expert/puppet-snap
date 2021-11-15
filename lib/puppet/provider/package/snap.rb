@@ -165,9 +165,9 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
       # classic, devmode and jailmode params are only available for install, refresh, revert actions.
       if %w[install refresh revert].include?(action)
-        request['classic'] = true if options.include?('--classic')
-        request['devmode'] = true if options.include?('--devmode')
-        request['jailmode'] = true if options.include?('--jailmode')
+        request['classic'] = true if options.include?('classic')
+        request['devmode'] = true if options.include?('devmode')
+        request['jailmode'] = true if options.include?('jailmode')
       end
 
       request['purge'] = true if action == 'remove' && options.include?('purge')
@@ -184,7 +184,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   end
 
   def self.parse_channel(options)
-    if (channel = options.find { |e| %r{--channel} =~ e })
+    if (channel = options.find { |e| %r{channel} =~ e })
       return channel.split('=')[1]
     end
 
