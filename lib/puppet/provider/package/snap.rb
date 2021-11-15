@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'puppet/provider/package'
 require 'net/http'
 require 'socket'
@@ -89,18 +91,18 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     # Read timeout can happen while installing core snap. The snap daemon briefly restarts
     # which drops the connection to the socket.
     loop do
-      begin
-        response = Net::HTTPResponse.read_new(socket)
-        break unless response.is_a?(Net::HTTPContinue)
-      rescue Net::ReadTimeout, Net::OpenTimeout
-        raise Puppet::Error, "Got timeout wile calling the api #{retried} times! Giving up..." if retried > max_retries
+      response = Net::HTTPResponse.read_new(socket)
+      break unless response.is_a?(Net::HTTPContinue)
+    rescue Net::ReadTimeout, Net::OpenTimeout
+      raise Puppet::Error, "Got timeout wile calling the api #{retried} times! Giving up..." if retried > max_retries
 
-        Puppet.debug('Got timeout while calling the api, retrying...')
-        retried += 1
-        retry
-      end
+      Puppet.debug('Got timeout while calling the api, retrying...')
+      retried += 1
+      retry
     end
+    # rubocop:disable Lint/EmptyBlock
     response.reading_body(socket, request.response_body_permitted?) {}
+    # rubocop:enable Lint/EmptyBlock
 
     JSON.parse(response.body)
   end
@@ -108,9 +110,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   def self.installed_snaps
     res = call_api('GET', '/v2/snaps')
 
-    unless [200, 404].include?(res['status-code'])
-      raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})"
-    end
+    raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})" unless [200, 404].include?(res['status-code'])
 
     res['result'].map { |hash| hash.slice('name', 'version') } if res['status-code'] == 200
   end
@@ -118,9 +118,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   # Helper method to return the change ID from a asynchronous request response.
   def self.get_id_from_async_req(request)
     # If the request failed raise an error
-    if request['type'] == 'error'
-      raise Puppet::Error, "Request failed with #{request['result']['message']}"
-    end
+    raise Puppet::Error, "Request failed with #{request['result']['message']}" if request['type'] == 'error'
 
     request['change']
   end
