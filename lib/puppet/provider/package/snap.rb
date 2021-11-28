@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 require 'puppet/provider/package'
-require 'net/http'
-require 'socket'
-require 'json'
+require 'puppet_x/snap/api'
 
 Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   desc "Package management via Snap.
@@ -43,7 +41,8 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   end
 
   def latest
-    res = self.class.call_api('GET', "/v2/find?name=#{@resource[:name]}")
+    params = URI.encode_www_form(name: @resource[:name])
+    res = PuppetX::Snap::API.call_api('GET', "/v2/find?#{params}")
 
     raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
 
@@ -69,89 +68,12 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     self.class.modify_snap('remove', @resource[:name], ['purge'])
   end
 
-  def self.call_api(method, url, data = nil)
-    socket = Net::BufferedIO.new(UNIXSocket.new('/run/snapd.socket'))
-
-    request = if method == 'POST'
-                req = Net::HTTP::Post.new(url)
-                req.body = data.to_json
-                req
-              else
-                Net::HTTP::Get.new(url)
-              end
-
-    request['Host'] = 'localhost'
-    request['Accept'] = 'application/json'
-    request['Content-Type'] = 'application/json'
-    request.exec(socket, '1.1', url)
-
-    response = nil
-    retried = 0
-    max_retries = 5
-    # Read timeout can happen while installing core snap. The snap daemon briefly restarts
-    # which drops the connection to the socket.
-    loop do
-      response = Net::HTTPResponse.read_new(socket)
-      break unless response.is_a?(Net::HTTPContinue)
-    rescue Net::ReadTimeout, Net::OpenTimeout
-      raise Puppet::Error, "Got timeout wile calling the api #{retried} times! Giving up..." if retried > max_retries
-
-      Puppet.debug('Got timeout while calling the api, retrying...')
-      retried += 1
-      retry
-    end
-    # rubocop:disable Lint/EmptyBlock
-    response.reading_body(socket, request.response_body_permitted?) {}
-    # rubocop:enable Lint/EmptyBlock
-
-    JSON.parse(response.body)
-  end
-
   def self.installed_snaps
-    res = call_api('GET', '/v2/snaps')
+    res = PuppetX::Snap::API.call_api('GET', '/v2/snaps')
 
     raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})" unless [200, 404].include?(res['status-code'])
 
     res['result'].map { |hash| hash.slice('name', 'version') } if res['status-code'] == 200
-  end
-
-  # Helper method to return the change ID from a asynchronous request response.
-  def self.get_id_from_async_req(request)
-    # If the request failed raise an error
-    raise Puppet::Error, "Request failed with #{request['result']['message']}" if request['type'] == 'error'
-
-    request['change']
-  end
-
-  # Get the status of a change
-  #
-  # @param id The change ID to search for.
-  def self.get_status(id)
-    call_api('GET', "/v2/changes/#{id}")
-  end
-
-  # Queries the API for a specific change and waits until it has
-  # been completed.
-  #
-  # @param id The change ID to search for.
-  def self.complete(id)
-    completed = false
-    until completed
-      res = get_status(id)
-      case res['result']['status']
-      when 'Do', 'Doing', 'Undoing', 'Undo'
-        # Still running
-        # Wait a little bit before hitting the API again!
-        sleep(1)
-        next
-      when 'Abort', 'Hold', 'Error'
-        raise Puppet::Error, "Error while executing the request #{res}"
-      when 'Done'
-        completed = true
-      else
-        raise Puppet::Error, "Unknown status #{res}"
-      end
-    end
   end
 
   def self.generate_request(action, options)
@@ -176,9 +98,9 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   def self.modify_snap(action, name, options = nil)
     req = generate_request(action, options)
-    response = call_api('POST', "/v2/snaps/#{name}", req)
-    change_id = get_id_from_async_req(response)
-    complete(change_id)
+    response = PuppetX::Snap::API.call_api('POST', "/v2/snaps/#{name}", req)
+    change_id = PuppetX::Snap::API.get_id_from_async_req(response)
+    PuppetX::Snap::API.complete(change_id)
   end
 
   def self.parse_channel(options)
