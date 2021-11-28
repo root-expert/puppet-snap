@@ -15,6 +15,7 @@ class snap (
   if $facts['os']['family'] == 'RedHat' {
     if $manage_repo {
       include epel
+      Yumrepo['epel'] -> Package['snapd']
     }
 
     file { '/snap':
