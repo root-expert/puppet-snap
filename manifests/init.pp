@@ -10,23 +10,23 @@ class snap (
   Enum['stopped', 'running'] $service_ensure   = 'running',
   Boolean                    $service_enable   = true,
   String[1]                  $core_snap_ensure = 'installed',
-  Boolean                    $manage_repo      = true,
+  Boolean                    $manage_repo      = false,
 ) {
-  if $facts['os']['family'] == 'RedHat' {
-    if $manage_repo {
-      include epel
-      Yumrepo['epel'] -> Package['snapd']
-    }
+  if $manage_repo {
+    include epel
+    Yumrepo['epel'] -> Package['snapd']
+  }
 
+  package { 'snapd':
+    ensure => $package_ensure,
+  }
+
+  if $facts['os']['family'] == 'RedHat' {
     file { '/snap':
       ensure  => link,
       target  => '/var/lib/snapd/snap',
       require => Package['snapd'],
     }
-  }
-
-  package { 'snapd':
-    ensure  => $package_ensure,
   }
 
   service { 'snapd':
