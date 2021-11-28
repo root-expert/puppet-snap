@@ -51,13 +51,6 @@
         "18.04",
         "20.04"
       ]
-    },
-    {
-      "operatingsystem": "Fedora",
-      "operatingsystemrelease": [
-        "33",
-        "34"
-      ]
     }
   ],
   "requirements": [
