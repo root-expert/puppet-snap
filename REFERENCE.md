@@ -8,6 +8,10 @@
 
 * [`snap`](#snap)
 
+### Resource types
+
+* [`snap_conf`](#snap_conf): Manage snap configuration both system wide and snap specific.
+
 ## Classes
 
 ### <a name="snap"></a>`snap`
@@ -23,6 +27,7 @@ The following parameters are available in the `snap` class:
 * [`service_enable`](#service_enable)
 * [`core_snap_ensure`](#core_snap_ensure)
 * [`manage_repo`](#manage_repo)
+* [`net_http_unix_ensure`](#net_http_unix_ensure)
 
 ##### <a name="package_ensure"></a>`package_ensure`
 
@@ -62,5 +67,68 @@ Data type: `Boolean`
 
 Whether we should manage EPEL repo or not.
 
-Default value: ``true``
+Default value: ``false``
+
+##### <a name="net_http_unix_ensure"></a>`net_http_unix_ensure`
+
+Data type: `Enum['present', 'installed', 'absent']`
+
+The state of net_http_unix gem.
+
+Default value: `'installed'`
+
+## Resource types
+
+### <a name="snap_conf"></a>`snap_conf`
+
+Manage snap configuration both system wide and snap specific.
+
+#### Properties
+
+The following properties are available in the `snap_conf` type.
+
+##### `ensure`
+
+Valid values: `present`, `absent`
+
+The desired state of the snap configuration.
+
+Default value: `present`
+
+#### Parameters
+
+The following parameters are available in the `snap_conf` type.
+
+* [`conf`](#conf)
+* [`name`](#name)
+* [`provider`](#provider)
+* [`snap`](#snap)
+* [`value`](#value)
+
+##### <a name="conf"></a>`conf`
+
+Name of configuration option.
+
+Default value: `''`
+
+##### <a name="name"></a>`name`
+
+namevar
+
+An unique name for this define.
+
+##### <a name="provider"></a>`provider`
+
+The specific backend to use for this `snap_conf` resource. You will seldom need to specify this --- Puppet will usually
+discover the appropriate provider for your platform.
+
+##### <a name="snap"></a>`snap`
+
+The snap to configure the value for. This can be the reserved name system for system wide configurations.
+
+Default value: `''`
+
+##### <a name="value"></a>`value`
+
+Value of configuration option.
 
