@@ -42,7 +42,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   def latest
     params = URI.encode_www_form(name: @resource[:name])
-    res = PuppetX::Snap::API.call_api('GET', "/v2/find?#{params}")
+    res = PuppetX::Snap::API.get("/v2/find?#{params}")
 
     raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
 
@@ -69,7 +69,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   end
 
   def self.installed_snaps
-    res = PuppetX::Snap::API.call_api('GET', '/v2/snaps')
+    res = PuppetX::Snap::API.get('/v2/snaps')
 
     raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})" unless [200, 404].include?(res['status-code'])
 
@@ -98,7 +98,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   def self.modify_snap(action, name, options = nil)
     req = generate_request(action, options)
-    response = PuppetX::Snap::API.call_api('POST', "/v2/snaps/#{name}", req)
+    response = PuppetX::Snap::API.post("/v2/snaps/#{name}", req)
     change_id = PuppetX::Snap::API.get_id_from_async_req(response)
     PuppetX::Snap::API.complete(change_id)
   end
