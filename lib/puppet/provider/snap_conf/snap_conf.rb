@@ -15,7 +15,7 @@ Puppet::Type.type(:snap_conf).provide(:snap_conf) do
 
   def exists?
     params = URI.encode_www_form(keys: @resource[:conf])
-    res = PuppetX::Snap::API.call_api('GET', "/v2/snaps/#{@resource[:snap]}/conf?#{params}")
+    res = PuppetX::Snap::API.get("/v2/snaps/#{@resource[:snap]}/conf?#{params}")
 
     case res['status-code']
     when 200
@@ -41,7 +41,7 @@ Puppet::Type.type(:snap_conf).provide(:snap_conf) do
       @resource[:conf] => value
     }
 
-    res = PuppetX::Snap::API.call_api('PUT', "/v2/snaps/#{@resource[:snap]}/conf", data)
+    res = PuppetX::Snap::API.put("/v2/snaps/#{@resource[:snap]}/conf", data)
     change_id = PuppetX::Snap::API.get_id_from_async_req(res)
     PuppetX::Snap::API.complete(change_id)
   end
@@ -66,7 +66,7 @@ Puppet::Type.type(:snap_conf).provide(:snap_conf) do
 
   def value
     params = URI.encode_www_form(keys: @resource[:conf])
-    res = PuppetX::Snap::API.call_api('GET', "/v2/snaps/#{@resource[:snap]}/conf?#{params}")
+    res = PuppetX::Snap::API.get("/v2/snaps/#{@resource[:snap]}/conf?#{params}")
 
     case res['status-code']
     when 200
