@@ -11,6 +11,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   commands snap_cmd: '/usr/bin/snap'
   has_feature :installable, :install_options, :uninstallable, :purgeable
+  confine feature: :net_http_unix_lib
 
   def self.instances
     instances = []
