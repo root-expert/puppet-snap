@@ -15,7 +15,8 @@ describe 'snap' do
 
       it { is_expected.to contain_package('snapd').with_ensure('installed') }
       it { is_expected.to contain_service('snapd').with_ensure('running').with_enable(true).that_requires('Package[snapd]') }
-      it { is_expected.to contain_package('core').with_ensure('installed').with_provider('snap').that_requires('Service[snapd]') }
+      it { is_expected.to contain_package('net_http_unix').with_ensure('installed').with_provider('puppet_gem').that_requires('Service[snapd]') }
+      it { is_expected.to contain_package('core').with_ensure('installed').with_provider('snap').that_requires(%w[Service[snapd] Package[net_http_unix]]) }
     end
   end
 end
