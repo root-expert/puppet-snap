@@ -1,6 +1,6 @@
 {
-  "name": "puppet-snap",
-  "version": "0.1.0-rc0",
+  "name": "rootexpert-snap",
+  "version": "1.0.0",
   "author": "root-expert",
   "summary": "Puppet module for installing Snap and managing snap packages.",
   "license": "Apache-2.0",
