@@ -2,11 +2,11 @@
 
 [![Build Status](https://github.com/root-expert/puppet-snap/workflows/CI/badge.svg)](https://github.com/root-expert/puppet-snap/actions?query=workflow%3ACI)
 [![Release](https://github.com/root-expert/puppet-snap/actions/workflows/release.yml/badge.svg)](https://github.com/root-expert/puppet-snap/actions/workflows/release.yml)
-[![Puppet Forge](https://img.shields.io/puppetforge/v/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
-[![Puppet Forge - downloads](https://img.shields.io/puppetforge/dt/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
-[![Puppet Forge - endorsement](https://img.shields.io/puppetforge/e/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
-[![Puppet Forge - scores](https://img.shields.io/puppetforge/f/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
-[![puppetmodule.info docs](http://www.puppetmodule.info/images/badge.png)](http://www.puppetmodule.info/m/puppet-snap)
+[![Puppet Forge](https://img.shields.io/puppetforge/v/rootexpert/snap.svg)](https://forge.puppet.com/modules/rootexpert/snap)
+[![Puppet Forge - downloads](https://img.shields.io/puppetforge/dt/rootexpert/snap.svg)](https://forge.puppet.com/modules/rootexpert/snap)
+[![Puppet Forge - endorsement](https://img.shields.io/puppetforge/e/rootexpert/snap.svg)](https://forge.puppet.com/modules/rootexpert/snap)
+[![Puppet Forge - scores](https://img.shields.io/puppetforge/f/rootexpert/snap.svg)](https://forge.puppet.com/modules/rootexpert/snap)
+[![puppetmodule.info docs](http://www.puppetmodule.info/images/badge.png)](http://www.puppetmodule.info/m/rootexpert-snap)
 [![Apache-2 License](https://img.shields.io/github/license/root-expert/puppet-snap.svg)](LICENSE)
 
 #### Table of Contents
