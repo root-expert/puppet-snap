@@ -2,10 +2,10 @@
 
 [![Build Status](https://github.com/root-expert/puppet-snap/workflows/CI/badge.svg)](https://github.com/root-expert/puppet-snap/actions?query=workflow%3ACI)
 [![Release](https://github.com/root-expert/puppet-snap/actions/workflows/release.yml/badge.svg)](https://github.com/root-expert/puppet-snap/actions/workflows/release.yml)
-[![Puppet Forge](https://img.shields.io/puppetforge/v/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
-[![Puppet Forge - downloads](https://img.shields.io/puppetforge/dt/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
-[![Puppet Forge - endorsement](https://img.shields.io/puppetforge/e/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
-[![Puppet Forge - scores](https://img.shields.io/puppetforge/f/puppet/snap.svg)](https://forge.puppetlabs.com/puppet/snap)
+[![Puppet Forge](https://img.shields.io/puppetforge/v/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
+[![Puppet Forge - downloads](https://img.shields.io/puppetforge/dt/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
+[![Puppet Forge - endorsement](https://img.shields.io/puppetforge/e/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
+[![Puppet Forge - scores](https://img.shields.io/puppetforge/f/root-expert/snap.svg)](https://forge.puppet.com/root-expert/snap)
 [![puppetmodule.info docs](http://www.puppetmodule.info/images/badge.png)](http://www.puppetmodule.info/m/puppet-snap)
 [![Apache-2 License](https://img.shields.io/github/license/root-expert/puppet-snap.svg)](LICENSE)
 
@@ -40,7 +40,7 @@ the [Snapd REST API](https://snapcraft.io/docs/snapd-api) for managing snaps.
 To install Snap and the core package:
 
 ```puppet
-class { 'snap': }
+include snap
 ```
 
 If you are using a RedHat family OS you need to additionally install [puppet-epel](https://github.com/voxpupuli/puppet-epel)
