@@ -17,10 +17,13 @@ describe Puppet::Type.type(:package).provider(:snap) do
     resource.provider
   end
 
-  find_res = JSON.parse(File.read('spec/fixtures/responses/find_res.json'))
+  before do
+    allow(PuppetX::Snap::API).to receive(:get).with('/v2/snaps').and_return('[]')
+  end
 
   context 'should have provider features' do
     it { is_expected.to be_installable }
+    it { is_expected.to be_versionable }
     it { is_expected.to be_install_options }
     it { is_expected.to be_uninstallable }
     it { is_expected.to be_purgeable }
@@ -46,44 +49,47 @@ describe Puppet::Type.type(:package).provider(:snap) do
 
   context 'installing without any option' do
     it 'generates correct request' do
-      response = provider.class.generate_request('install', nil)
+      response = provider.class.generate_request('install', nil, nil)
       expect(response).to eq('action' => 'install')
     end
   end
 
-  context 'installing with channel option' do
+  context 'installing with channel' do
     it 'generates correct request' do
-      response = provider.class.generate_request('install', ['channel=beta'])
+      response = provider.class.generate_request('install', 'beta', nil)
       expect(response).to eq('action' => 'install', 'channel' => 'beta')
     end
   end
 
   context 'installing with classic option' do
     it 'generates correct request' do
-      response = provider.class.generate_request('install', ['classic'])
+      response = provider.class.generate_request('install', nil, ['classic'])
       expect(response).to eq('action' => 'install', 'classic' => true)
     end
   end
 
-  context 'querying for latest version' do
-    before do
-      allow(PuppetX::Snap::API).to receive(:get).with('/v2/find?name=hello-world').and_return(find_res)
+  context 'decides the correct channel usage' do
+    it 'with no channel specified returns correct ensure value' do
+      expect(provider.determine_channel).to eq('latest/stable')
     end
 
-    it 'with no channel specified returns correct version from latest/stable channel' do
-      expect(provider.latest).to eq('6.4')
+    it 'with channel specified in ensure returns correct ensure value' do
+      resource[:ensure] = 'latest/beta'
+
+      expect(provider.determine_channel).to eq('latest/beta')
     end
 
-    it 'with channel specified returns correct version from specified channel' do
+    it 'with channel specified in install options returns correct ensure value' do
       resource[:install_options] = ['channel=latest/beta']
 
-      expect(provider.latest).to eq('6.0')
+      expect(provider.determine_channel).to eq('latest/beta')
     end
 
-    it 'with non-existent channel' do
-      resource[:install_options] = ['channel=latest/kokolala']
+    it 'with channel specified in both ensure install options returns correct ensure value' do
+      resource[:install_options] = ['channel=latest/beta']
+      resource[:ensure] = 'latest/candidate' # this should be preferred
 
-      expect { provider.latest }.to raise_error(%r{No version in channel latest/kokolala$})
+      expect(provider.determine_channel).to eq('latest/candidate')
     end
   end
 end

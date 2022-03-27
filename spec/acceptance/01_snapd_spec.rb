@@ -34,6 +34,10 @@ describe 'snapd class' do
       end
 
       it_behaves_like 'an idempotent resource'
+
+      describe command('snap list --unicode=never --color=never') do
+        its(:stdout) { is_expected.to match(%r{hello-world}) }
+      end
     end
 
     describe 'uninstalls package' do
@@ -47,6 +51,50 @@ describe 'snapd class' do
       end
 
       it_behaves_like 'an idempotent resource'
+
+      describe command('snap list --unicode=never --color=never') do
+        its(:stdout) { is_expected.not_to match(%r{hello-world}) }
+      end
+    end
+
+    describe 'installs package with specified version' do
+      let(:manifest) do
+        <<-PUPPET
+          package { 'hello-world':
+            ensure   => 'latest/candidate',
+            provider => snap,
+          }
+        PUPPET
+      end
+
+      it_behaves_like 'an idempotent resource'
+
+      describe command('snap list --unicode=never --color=never') do
+        its(:stdout) do
+          is_expected.to match(%r{hello-world})
+          is_expected.to match(%r{candidate})
+        end
+      end
+    end
+
+    describe 'changes installed channel' do
+      let(:manifest) do
+        <<-PUPPET
+          package { 'hello-world':
+            ensure   => 'latest/beta',
+            provider => snap,
+          }
+        PUPPET
+      end
+
+      it_behaves_like 'an idempotent resource'
+
+      describe command('snap list --unicode=never --color=never') do
+        its(:stdout) do
+          is_expected.to match(%r{hello-world})
+          is_expected.to match(%r{beta})
+        end
+      end
     end
   end
 end
