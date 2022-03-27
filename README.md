@@ -89,9 +89,8 @@ To install from specific channel:
 
 ```puppet
 package { 'hello-world':
-  ensure          => installed,
-  provider        => 'snap',
-  install_options => ['channel=beta'],
+  ensure   => 'beta',
+  provider => 'snap',
 }
 ```
 

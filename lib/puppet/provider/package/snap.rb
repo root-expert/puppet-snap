@@ -7,109 +7,106 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   desc "Package management via Snap.
 
     This provider supports the `install_options` attribute, which allows snap's flags to be
-    passed to Snap. Namely `classic`, `dangerous`, `devmode`, `jailmode`, `channel`."
+    passed to Snap. Namely `classic`, `dangerous`, `devmode`, `jailmode`.
+
+    The 'channel' install option is deprecated and will be removed in a future release.
+  "
 
   commands snap_cmd: '/usr/bin/snap'
-  has_feature :installable, :install_options, :uninstallable, :purgeable
+  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable
   confine feature: %i[net_http_unix_lib snapd_socket]
 
   def self.instances
-    instances = []
-    snaps = installed_snaps
-
-    snaps.each do |snap|
-      instances << new(name: snap['name'], ensure: snap['version'], provider: 'snap')
+    @installed_snaps ||= installed_snaps
+    @installed_snaps.map do |snap|
+      new(name: snap['name'], ensure: snap['tracking-channel'], provider: 'snap')
     end
-
-    instances
   end
 
   def query
-    instances = self.class.instances
-    instances.each do |instance|
-      return instance if instance.name == @resource[:name]
+    installed = self.class.instances.find { |it| it.name == @resource['name'] }
+    if installed
+      { ensure: installed[:ensure], name: @resource[:name] }
+    else
+      { ensure: :absent, name: @resource[:name] }
     end
-
-    nil
-  end
-
-  def install
-    self.class.modify_snap('install', @resource[:name], @resource[:install_options])
-  end
-
-  def update
-    self.class.modify_snap('refresh', @resource[:name], @resource[:install_options])
   end
 
   def latest
-    params = URI.encode_www_form(name: @resource[:name])
-    res = PuppetX::Snap::API.get("/v2/find?#{params}")
+    query&.get(:ensure)
+  end
 
-    raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
+  def install
+    modify_snap('install')
+  end
 
-    # Search latest version for the specified channel. If channel is unspecified, fallback to latest/stable
-    channel = if @resource[:install_options].nil?
-                'latest/stable'
-              else
-                self.class.parse_channel(@resource[:install_options])
-              end
-
-    selected_channel = res['result'].first&.dig('channels', channel)
-    raise Puppet::Error, "No version in channel #{channel}" unless selected_channel
-
-    # Return version
-    selected_channel['version']
+  def update
+    modify_snap('switch')
   end
 
   def uninstall
-    self.class.modify_snap('remove', @resource[:name])
+    modify_snap('remove', nil)
   end
 
-  # Purge differs from remove as it doesn't save snapshot with snap's data.
+  # Purge differs from remove as it doesn't save a snapshot with snap's data.
   def purge
-    self.class.modify_snap('remove', @resource[:name], ['purge'])
+    modify_snap('remove', ['purge'])
   end
 
-  def self.installed_snaps
-    res = PuppetX::Snap::API.get('/v2/snaps')
-
-    raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})" unless [200, 404].include?(res['status-code'])
-
-    res['result'].map { |hash| hash.slice('name', 'version') } if res['status-code'] == 200
+  def modify_snap(action, options = @resource[:install_options])
+    body = self.class.generate_request(action, determine_channel, options)
+    response = PuppetX::Snap::API.post("/v2/snaps/#{@resource[:name]}", body)
+    change_id = PuppetX::Snap::API.get_id_from_async_req(response)
+    PuppetX::Snap::API.complete(change_id)
   end
 
-  def self.generate_request(action, options)
+  def determine_channel
+    channel = self.class.channel_from_ensure(@resource[:ensure])
+    channel ||= self.class.channel_from_options(@resource[:install_options])
+    channel ||= 'latest/stable'
+    channel
+  end
+
+  def self.generate_request(action, channel, options)
     request = { 'action' => action }
+    request['channel'] = channel unless channel.nil?
 
     if options
-      channel = parse_channel(options)
-      request['channel'] = channel unless channel.nil?
-
-      # classic, devmode and jailmode params are only available for install, refresh, revert actions.
-      if %w[install refresh revert].include?(action)
+      # classic, devmode and jailmode params are only
+      # available for install, refresh, revert actions.
+      case action
+      when 'install', 'refresh', 'revert'
         request['classic'] = true if options.include?('classic')
         request['devmode'] = true if options.include?('devmode')
         request['jailmode'] = true if options.include?('jailmode')
+      when 'remove'
+        request['purge'] = true if options.include?('purge')
       end
-
-      request['purge'] = true if action == 'remove' && options.include?('purge')
     end
 
     request
   end
 
-  def self.modify_snap(action, name, options = nil)
-    req = generate_request(action, options)
-    response = PuppetX::Snap::API.post("/v2/snaps/#{name}", req)
-    change_id = PuppetX::Snap::API.get_id_from_async_req(response)
-    PuppetX::Snap::API.complete(change_id)
+  def self.channel_from_ensure(value)
+    value = value.to_s
+    case value
+    when 'present', 'absent', 'purged', 'installed', 'latest'
+      nil
+    else
+      value
+    end
   end
 
-  def self.parse_channel(options)
-    if (channel = options.find { |e| %r{channel} =~ e })
-      return channel.split('=')[1]
+  def self.channel_from_options(options)
+    options&.find { |e| %r{channel} =~ e }&.split('=')&.last&.tap do |ch|
+      Puppet.warning("Install option 'channel' is deprecated, use ensure => '#{ch}' instead.")
     end
+  end
 
-    nil
+  def self.installed_snaps
+    res = PuppetX::Snap::API.get('/v2/snaps')
+    raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})" unless [200, 404].include?(res['status-code'])
+
+    res['status-code'] == 200 ? res['result'].map { |hash| hash.slice('name', 'tracking-channel') } : []
   end
 end
