@@ -66,17 +66,24 @@ describe Puppet::Type.type(:package).provider(:snap) do
   end
 
   context 'querying for latest version' do
-    it 'with no channel specified returns correct version from stable channel' do
+    before do
       allow(PuppetX::Snap::API).to receive(:get).with('/v2/find?name=hello-world').and_return(find_res)
+    end
 
+    it 'with no channel specified returns correct version from latest/stable channel' do
       expect(provider.latest).to eq('6.4')
     end
 
     it 'with channel specified returns correct version from specified channel' do
-      resource[:install_options] = ['channel=beta']
-      allow(PuppetX::Snap::API).to receive(:get).with('/v2/find?name=hello-world').and_return(find_res)
+      resource[:install_options] = ['channel=latest/beta']
 
       expect(provider.latest).to eq('6.0')
+    end
+
+    it 'with non-existent channel' do
+      resource[:install_options] = ['channel=latest/kokolala']
+
+      expect { provider.latest }.to raise_error(%r{No version in channel latest/kokolala$})
     end
   end
 end
