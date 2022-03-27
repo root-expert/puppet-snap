@@ -47,13 +47,14 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
     raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
 
-    # Search latest version for the specified channel. If unspecified fallback to stable.c
+    # Search latest version for the specified channel. If channel is unspecified, fallback to latest/stable
     channel = if @resource[:install_options].nil?
-                'stable'
+                'latest/stable'
               else
                 self.class.parse_channel(@resource[:install_options])
               end
-    selected_channel = res['result'][0]['channels']["latest/#{channel}"]
+
+    selected_channel = res['result'].first&.dig('channels', channel)
     raise Puppet::Error, "No version in channel #{channel}" unless selected_channel
 
     # Return version
