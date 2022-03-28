@@ -1,6 +1,6 @@
 {
   "name": "rootexpert-snap",
-  "version": "1.1.0",
+  "version": "1.1.1-rc0",
   "author": "root-expert",
   "summary": "Puppet module for installing Snap and managing snap packages.",
   "license": "Apache-2.0",
@@ -8,6 +8,7 @@
   "project_page": "https://github.com/root-expert/puppet-snap",
   "issues_url": "https://github.com/root-expert/puppet-snap/issues",
   "dependencies": [
+
   ],
   "operatingsystem_support": [
     {
