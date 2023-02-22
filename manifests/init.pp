@@ -42,8 +42,11 @@ class snap (
     provider => 'puppet_gem',
   }
 
-  -> package { 'core':
-    ensure   => $core_snap_ensure,
-    provider => 'snap',
+  if $service_ensure == 'running' {
+    package { 'core':
+      ensure   => $core_snap_ensure,
+      provider => 'snap',
+      require  => Package['net_http_unix'],
+    }
   }
 }
