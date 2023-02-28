@@ -46,7 +46,7 @@ class snap (
     package { 'core':
       ensure   => $core_snap_ensure,
       provider => 'snap',
-      require  => Package['net_http_unix'],
+      require  => [Package['net_http_unix'], Service['snapd']],
     }
   }
 }
