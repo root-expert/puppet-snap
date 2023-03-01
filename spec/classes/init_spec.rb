@@ -23,7 +23,7 @@ describe 'snap' do
       let(:facts) do
         facts
       end
-      
+
       let(:params) do
         { 'service_ensure' => 'stopped' }
       end
