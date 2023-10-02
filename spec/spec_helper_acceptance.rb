@@ -27,7 +27,7 @@ configure_beaker do |host|
 
   apply_manifest_on(host, pp, catch_failures: true)
   apply_manifest_on(host, debian, catch_failures: true) if fact('os.family') == 'Debian'
-  install_module_from_forge_on(host, 'puppet/epel', '>= 3.1.0 < 5.0.0') if fact('os.family') == 'RedHat'
+  install_puppet_module_via_pmt_on(host, 'puppet/epel') if fact('os.family') == 'RedHat'
 end
 
 Dir['./spec/support/acceptance/**/*.rb'].sort.each { |f| require f }
