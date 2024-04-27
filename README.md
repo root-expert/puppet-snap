@@ -80,7 +80,7 @@ To purge a snap (_warning purging will remove all snap data_):
 
 ```puppet
 package { 'hello-world':
-  ensure   => purge,
+  ensure   => purged,
   provider => 'snap',
 }
 ```
