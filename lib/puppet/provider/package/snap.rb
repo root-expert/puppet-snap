@@ -13,35 +13,68 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   "
 
   commands snap_cmd: '/usr/bin/snap'
-  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable
+  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable, :upgradeable
   confine feature: %i[net_http_unix_lib snapd_socket]
 
   def self.instances
+    Puppet.info('called instances')
     @installed_snaps ||= installed_snaps
+    Puppet.info("installed_snaps = #{@installed_snaps}")
     @installed_snaps.map do |snap|
       new(name: snap['name'], ensure: snap['tracking-channel'], provider: 'snap')
     end
   end
 
   def query
-    installed = self.class.instances.find { |it| it.name == @resource['name'] }
-    if installed
-      { ensure: installed[:ensure], name: @resource[:name] }
-    else
-      { ensure: :absent, name: @resource[:name] }
-    end
-  end
-
-  def latest
-    query&.get(:ensure)
+    Puppet.info('called query')
+    installed = @installed_snaps&.find { |it| it.name == @resource['name'] }
+    Puppet.info("installed #{installed}")
+    { ensure: installed.ensure, name: @resource[:name] } if installed
   end
 
   def install
-    modify_snap('install')
+    Puppet.info('called install')
+    current_ensure = query&.dig(:ensure)
+    current_ensure ||= :absent
+
+    Puppet.info("current_ensure = #{current_ensure}")
+    # Refresh the snap if we changed the channel
+    if current_ensure != @resource[:ensure] && current_ensure != :absent
+      Puppet.info('modify snap')
+      modify_snap('refresh') # Refresh will switch the channel AND trigger a refresh immediately. TODO Implement switch?
+    else
+      Puppet.info('install snap')
+      modify_snap('install')
+    end
   end
 
   def update
-    modify_snap('switch')
+    install
+  end
+
+  def latest
+    Puppet.info('called latest')
+    params = URI.encode_www_form(name: @resource[:name])
+    res = PuppetX::Snap::API.get("/v2/find?#{params}")
+
+    raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
+
+    # Search latest version for the specified channel. If channel is unspecified, fallback to latest/stable
+    channel = if @resource[:install_options].nil?
+                'latest/stable'
+              else
+                self.class.parse_channel(@resource[:install_options])
+              end
+
+    Puppet.info("channel = #{channel}")
+    selected_channel = res['result'].first&.dig('channels', channel)
+    Puppet.info("selected_channel = #{selected_channel}")
+    raise Puppet::Error, "No version in channel #{channel}" unless selected_channel
+
+    Puppet.info('Evaluating version')
+    Puppet.info("version = #{selected_channel['version']}")
+    # Return version
+    selected_channel['version']
   end
 
   def uninstall
