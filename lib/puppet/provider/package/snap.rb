@@ -25,11 +25,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   def query
     installed = self.class.instances.find { |it| it.name == @resource['name'] }
-    if installed
-      { ensure: installed[:ensure], name: @resource[:name] }
-    else
-      nil
-    end
+    { ensure: installed[:ensure], name: @resource[:name] } if installed
   end
 
   def install
