@@ -13,35 +13,38 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   "
 
   commands snap_cmd: '/usr/bin/snap'
-  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable
+  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable, :upgradeable
   confine feature: %i[net_http_unix_lib snapd_socket]
 
+  mk_resource_methods
+
   def self.instances
-    @installed_snaps ||= installed_snaps
-    @installed_snaps.map do |snap|
+    installed_snaps.map do |snap|
       new(name: snap['name'], ensure: snap['tracking-channel'], provider: 'snap')
     end
   end
 
   def query
-    installed = self.class.instances.find { |it| it.name == @resource['name'] }
-    if installed
-      { ensure: installed[:ensure], name: @resource[:name] }
-    else
-      { ensure: :absent, name: @resource[:name] }
-    end
-  end
-
-  def latest
-    query&.get(:ensure)
+    { ensure: @property_hash[:ensure], name: @resource[:name] } unless @property_hash.empty?
   end
 
   def install
-    modify_snap('install')
+    current_ensure = query&.dig(:ensure)
+
+    # Refresh the snap if we changed the channel
+    if current_ensure != @resource[:ensure] && !%i[absent purged].include?(current_ensure)
+      modify_snap('refresh') # Refresh will switch the channel AND trigger a refresh immediately. TODO Implement switch?
+    else
+      modify_snap('install')
+    end
   end
 
   def update
-    modify_snap('switch')
+    install
+  end
+
+  def latest
+    raise Puppet::Error, "Don't use ensure => latest, instead define which channel to use"
   end
 
   def uninstall
