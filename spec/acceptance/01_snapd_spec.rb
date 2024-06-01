@@ -97,4 +97,41 @@ describe 'snapd class' do
       end
     end
   end
+
+  describe 'purges the package' do
+    let(:manifest) do
+      <<-PUPPET
+          package { 'hello-world':
+            ensure   => purged,
+            provider => snap,
+          }
+      PUPPET
+    end
+
+    it_behaves_like 'an idempotent resource'
+
+    describe command('snap list --unicode=never --color=never') do
+      its(:stdout) { is_expected.not_to match(%r{hello-world}) }
+    end
+  end
+
+  describe 'installs latest/stable when ensure: latest' do
+    let(:manifest) do
+      <<-PUPPET
+          package { 'hello-world':
+            ensure   => latest,
+            provider => snap,
+          }
+      PUPPET
+    end
+
+    it_behaves_like 'an idempotent resource'
+
+    describe command('snap list --unicode=never --color=never') do
+      its(:stdout) do
+        is_expected.to match(%r{hello-world})
+        is_expected.to match(%r{stable})
+      end
+    end
+  end
 end

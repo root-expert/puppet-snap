@@ -13,7 +13,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   "
 
   commands snap_cmd: '/usr/bin/snap'
-  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable
+  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable, :upgradeable
   confine feature: %i[net_http_unix_lib snapd_socket]
 
   def self.instances
@@ -28,20 +28,44 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     if installed
       { ensure: installed[:ensure], name: @resource[:name] }
     else
-      { ensure: :absent, name: @resource[:name] }
+      nil
     end
   end
 
-  def latest
-    query&.get(:ensure)
-  end
-
   def install
-    modify_snap('install')
+    current_ensure = query&.get(:ensure)
+    current_ensure ||= :absent
+
+    # Refresh the snap if we changed the channel
+    if current_ensure != @resource[:ensure] && current_ensure != :absent
+      modify_snap('refresh') # Refresh will switch the channel AND trigger a refresh immediately. TODO Implement switch?
+    else
+      modify_snap('install')
+    end
   end
 
   def update
-    modify_snap('switch')
+    install
+  end
+
+  def latest
+    params = URI.encode_www_form(name: @resource[:name])
+    res = PuppetX::Snap::API.get("/v2/find?#{params}")
+
+    raise Puppet::Error, "Couldn't find latest version" if res['status-code'] != 200
+
+    # Search latest version for the specified channel. If channel is unspecified, fallback to latest/stable
+    channel = if @resource[:install_options].nil?
+                'latest/stable'
+              else
+                self.class.parse_channel(@resource[:install_options])
+              end
+
+    selected_channel = res['result'].first&.dig('channels', channel)
+    raise Puppet::Error, "No version in channel #{channel}" unless selected_channel
+
+    # Return version
+    selected_channel['version']
   end
 
   def uninstall
