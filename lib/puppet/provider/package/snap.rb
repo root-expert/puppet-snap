@@ -27,6 +27,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   def query
     Puppet.info('called query')
+    Puppet.info("@installed_snaps = #{installed_snaps}")
     installed = @installed_snaps&.find { |it| it.name == @resource['name'] }
     Puppet.info("installed #{installed}")
     { ensure: installed.ensure, name: @resource[:name] } if installed
