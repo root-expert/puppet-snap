@@ -89,9 +89,8 @@ To install from specific channel:
 
 ```puppet
 package { 'hello-world':
-  ensure          => installed,
-  provider        => 'snap',
-  install_options => ['channel=beta'],
+  ensure   => 'beta',
+  provider => 'snap',
 }
 ```
 
@@ -104,8 +103,18 @@ package { 'hello-world':
   install_options => ['classic'],
 }
 ```
-
 Same applies for options `jailmode` and `devmode`
+
+This snippet
+```puppet
+package { 'hello-world':
+  ensure          => latest,
+  provider        => 'snap',
+  install_options => ['classic'],
+}
+```
+
+installs by default the `latest/stable` channel
 
 ## Reference
 
