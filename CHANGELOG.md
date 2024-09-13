@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 Each new release typically also includes the latest modulesync defaults.
 These should not affect the functionality of the module.
 
+## [v2.0.0](https://github.com/root-expert/puppet-snap/tree/v2.0.0) (2024-09-13)
+
+[Full Changelog](https://github.com/root-expert/puppet-snap/compare/v1.1.1...v2.0.0)
+
+**Breaking changes:**
+
+- Drop EoL Ubuntu 18.04 [\#33](https://github.com/root-expert/puppet-snap/pull/33) ([root-expert](https://github.com/root-expert))
+- Drop EoL Debian 10 [\#32](https://github.com/root-expert/puppet-snap/pull/32) ([root-expert](https://github.com/root-expert))
+- Drop EoL Fedora 33/34 [\#31](https://github.com/root-expert/puppet-snap/pull/31) ([root-expert](https://github.com/root-expert))
+- Drop support for EoL RedHat family 7/8 [\#30](https://github.com/root-expert/puppet-snap/pull/30) ([root-expert](https://github.com/root-expert))
+- Drop Puppet 6 support [\#18](https://github.com/root-expert/puppet-snap/pull/18) ([root-expert](https://github.com/root-expert))
+
+**Implemented enhancements:**
+
+- Add Puppet 8 support [\#19](https://github.com/root-expert/puppet-snap/pull/19) ([root-expert](https://github.com/root-expert))
+
+**Fixed bugs:**
+
+- Add logic to correctly switch between channels; Determine channel from ensure [\#25](https://github.com/root-expert/puppet-snap/pull/25) ([root-expert](https://github.com/root-expert))
+
+**Closed issues:**
+
+- does not do upgrade of snap [\#23](https://github.com/root-expert/puppet-snap/issues/23)
+
+**Merged pull requests:**
+
+- Add Fedora 40 support [\#29](https://github.com/root-expert/puppet-snap/pull/29) ([root-expert](https://github.com/root-expert))
+- Add Debian 12 support [\#28](https://github.com/root-expert/puppet-snap/pull/28) ([root-expert](https://github.com/root-expert))
+- Add Ubuntu 24.04 support [\#27](https://github.com/root-expert/puppet-snap/pull/27) ([root-expert](https://github.com/root-expert))
+
 ## [v1.1.1](https://github.com/root-expert/puppet-snap/tree/v1.1.1) (2024-04-27)
 
 [Full Changelog](https://github.com/root-expert/puppet-snap/compare/v1.1.0...v1.1.1)
@@ -18,7 +48,6 @@ These should not affect the functionality of the module.
 
 **Merged pull requests:**
 
-- Fix 'purge' -\> 'purged' in README [\#20](https://github.com/root-expert/puppet-snap/pull/20) ([root-expert](https://github.com/root-expert))
 - Add Ubuntu 22.04 support [\#13](https://github.com/root-expert/puppet-snap/pull/13) ([root-expert](https://github.com/root-expert))
 
 ## [v1.1.0](https://github.com/root-expert/puppet-snap/tree/v1.1.0) (2022-03-28)
