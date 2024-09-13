@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'date'
 require 'puppet/provider/package'
 require 'puppet_x/snap/api'
 
@@ -13,22 +14,26 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   "
 
   commands snap_cmd: '/usr/bin/snap'
-  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable, :upgradeable
+  has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable, :upgradeable, :holdable
   confine feature: %i[net_http_unix_lib snapd_socket]
 
   mk_resource_methods
 
   def self.instances
     installed_snaps.map do |snap|
-      new(name: snap['name'], ensure: snap['tracking-channel'], provider: 'snap')
+      mark = snap['hold'].nil? ? 'none' : 'hold'
+      Puppet.info("refresh-inhibit = #{mark}")
+      new(name: snap['name'], ensure: snap['tracking-channel'], mark: mark, hold_time: snap['hold'], provider: 'snap')
     end
   end
 
   def query
+    Puppet.info('called query')
     { ensure: @property_hash[:ensure], name: @resource[:name] } unless @property_hash.empty?
   end
 
   def install
+    Puppet.info('called install')
     current_ensure = query&.dig(:ensure)
 
     # Refresh the snap if we changed the channel
@@ -56,6 +61,18 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     modify_snap('remove', ['purge'])
   end
 
+  def hold
+    Puppet.info('called hold')
+    Puppet.info("@property_hash = #{@property_hash}")
+    Puppet.info("install_options = #{@resource[:install_options]}")
+    modify_snap('hold') unless @property_hash[:mark].equal?('hold') && @property_hash[:hold_time] == self.class.parse_time_from_options(@resource[:install_options])
+  end
+
+  def unhold
+    Puppet.info('called unhold')
+    modify_snap('unhold') unless @property_hash[:mark].equal?('none')
+  end
+
   def modify_snap(action, options = @resource[:install_options])
     body = self.class.generate_request(action, determine_channel, options)
     response = PuppetX::Snap::API.post("/v2/snaps/#{@resource[:name]}", body)
@@ -73,6 +90,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
   def self.generate_request(action, channel, options)
     request = { 'action' => action }
     request['channel'] = channel unless channel.nil?
+    request['hold-level'] = 'general' if action.equal?('hold')
 
     if options
       # classic, devmode and jailmode params are only
@@ -84,8 +102,16 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
         request['jailmode'] = true if options.include?('jailmode')
       when 'remove'
         request['purge'] = true if options.include?('purge')
+      when 'hold'
+        time = parse_time_from_options(options)
+        request['time'] = time
       end
+    elsif action.equal?('hold')
+      # If no options defined assume hold time forever
+      request['time'] = 'forever'
     end
+
+    Puppet.info("request = #{request}")
 
     request
   end
@@ -100,6 +126,19 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     end
   end
 
+  def self.parse_time_from_options(options)
+    time = options&.find { |opt| %r{hold_time} =~ opt }&.split('=')&.last
+
+    # Assume forever if not hold_time was specified
+    return 'forever' if time.nil? || time.equal?('forever')
+
+    begin
+      DateTime.parse(time).rfc3339
+    rescue Date::Error
+      raise Puppet::Error, 'Date not in correct format.'
+    end
+  end
+
   def self.channel_from_options(options)
     options&.find { |e| %r{channel} =~ e }&.split('=')&.last&.tap do |ch|
       Puppet.warning("Install option 'channel' is deprecated, use ensure => '#{ch}' instead.")
@@ -110,6 +149,6 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     res = PuppetX::Snap::API.get('/v2/snaps')
     raise Puppet::Error, "Could not find installed snaps (code: #{res['status-code']})" unless [200, 404].include?(res['status-code'])
 
-    res['status-code'] == 200 ? res['result'].map { |hash| hash.slice('name', 'tracking-channel') } : []
+    res['status-code'] == 200 ? res['result'].map { |hash| hash.slice('name', 'tracking-channel', 'hold') } : []
   end
 end

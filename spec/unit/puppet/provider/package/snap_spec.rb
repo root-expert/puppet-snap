@@ -28,6 +28,7 @@ describe Puppet::Type.type(:package).provider(:snap) do
     it { is_expected.to be_uninstallable }
     it { is_expected.to be_purgeable }
     it { is_expected.to be_upgradeable }
+    it { is_expected.to be_holdable }
   end
 
   context 'should respond to' do
