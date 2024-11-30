@@ -27,7 +27,6 @@ The following parameters are available in the `snap` class:
 * [`service_enable`](#-snap--service_enable)
 * [`core_snap_ensure`](#-snap--core_snap_ensure)
 * [`manage_repo`](#-snap--manage_repo)
-* [`net_http_unix_ensure`](#-snap--net_http_unix_ensure)
 
 ##### <a name="-snap--package_ensure"></a>`package_ensure`
 
@@ -68,14 +67,6 @@ Data type: `Boolean`
 Whether we should manage EPEL repo or not.
 
 Default value: `false`
-
-##### <a name="-snap--net_http_unix_ensure"></a>`net_http_unix_ensure`
-
-Data type: `Enum['present', 'installed', 'absent']`
-
-The state of net_http_unix gem.
-
-Default value: `'installed'`
 
 ## Resource types
 

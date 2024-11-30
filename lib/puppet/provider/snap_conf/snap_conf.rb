@@ -5,7 +5,7 @@ require 'puppet_x/snap/api'
 Puppet::Type.type(:snap_conf).provide(:snap_conf) do
   desc 'Manage snap configuration both system wide and snap specific.'
 
-  confine feature: %i[net_http_unix_lib snapd_socket]
+  confine feature: %i[snapd_socket]
 
   def create
     save_conf

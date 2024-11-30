@@ -8,7 +8,6 @@ group :test do
   gem 'coveralls',                  :require => false
   gem 'simplecov-console',          :require => false
   gem 'puppet_metadata', '~> 4.0',  :require => false
-  gem 'net_http_unix',              :require => false
 end
 
 group :development do

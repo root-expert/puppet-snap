@@ -14,7 +14,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   commands snap_cmd: '/usr/bin/snap'
   has_feature :installable, :versionable, :install_options, :uninstallable, :purgeable, :upgradeable
-  confine feature: %i[net_http_unix_lib snapd_socket]
+  confine feature: %i[snapd_socket]
 
   mk_resource_methods
 

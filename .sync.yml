@@ -1,8 +1,7 @@
 ---
 Gemfile:
   optional:
-    ':test':
-      - gem: 'net_http_unix'
+    ':test': []
 .puppet-lint.rc:
   enabled_lint_checks:
     - parameter_documentation
