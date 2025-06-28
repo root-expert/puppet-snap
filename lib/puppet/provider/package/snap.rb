@@ -65,7 +65,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     Puppet.info('called hold')
     Puppet.info("@property_hash = #{@property_hash}")
     Puppet.info("install_options = #{@resource[:install_options]}")
-    modify_snap('hold') unless @property_hash[:mark].equal?('hold') && @property_hash[:hold_time] == self.class.parse_time_from_options(@resource[:install_options])
+    modify_snap('hold') if should_change_hold?(@resource[:install_options])
   end
 
   def unhold
@@ -137,6 +137,20 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     rescue Date::Error
       raise Puppet::Error, 'Date not in correct format.'
     end
+  end
+
+  def should_change_hold?(options)
+    should_hold_time = self.class.parse_time_from_options(options)
+    current_hold_time = @property_hash[:hold_time]
+
+    parsed_hold_time = DateTime.parse(current_hold_time)
+    # If the hold time is more than 100 years, assume "forever"
+    current_hold_time = 'forever' if (parsed_hold_time - DateTime.now).to_i > 365 * 100
+
+    Puppet.info("should = #{should_hold_time}, current = #{current_hold_time}")
+
+    false if current_hold_time == should_hold_time
+    true
   end
 
   def self.channel_from_options(options)
