@@ -110,11 +110,11 @@ describe 'snapd class' do
 
       it_behaves_like 'an idempotent resource'
 
-      describe command('snap list --unicode=never --color=never') do
+      describe command('snap info --unicode=never --color=never --abs-time hello-world') do
         its(:stdout) do
-          is_expected.to match(%r{hello-world})
-          is_expected.to match(%r{beta})
-          is_expected.to match(%r{held})
+          is_expected.to match(%r{name:\s+hello-world})
+          is_expected.to match(%r{tracking:\s+latest/beta})
+          is_expected.to match(%r{hold:\s+forever})
         end
       end
     end
@@ -132,11 +132,11 @@ describe 'snapd class' do
 
       it_behaves_like 'an idempotent resource'
 
-      describe command('snap list --unicode=never --color=never') do
+      describe command('snap info --unicode=never --color=never --abs-time hello-world') do
         its(:stdout) do
-          is_expected.to match(%r{hello-world})
-          is_expected.to match(%r{candidate})
-          is_expected.to match(%r{held})
+          is_expected.to match(%r{name:\s+hello-world})
+          is_expected.to match(%r{tracking:\s+latest/candidate})
+          is_expected.to match(%r{hold:\s+forever})
         end
       end
     end
@@ -155,11 +155,11 @@ describe 'snapd class' do
 
       it_behaves_like 'an idempotent resource'
 
-      describe command('snap list --unicode=never --color=never') do
+      describe command('snap info --unicode=never --color=never --abs-time hello-world') do
         its(:stdout) do
-          is_expected.to match(%r{hello-world})
-          is_expected.to match(%r{candidate})
-          is_expected.to match(%r{held})
+          is_expected.to match(%r{name:\s+hello-world})
+          is_expected.to match(%r{tracking:\s+latest/candidate})
+          is_expected.to match(%r{hold:\s+2025-10-10T03:00:00})
         end
       end
     end
@@ -176,11 +176,11 @@ describe 'snapd class' do
 
       it_behaves_like 'an idempotent resource'
 
-      describe command('snap list --unicode=never --color=never') do
+      describe command('snap info --unicode=never --color=never --abs-time hello-world') do
         its(:stdout) do
-          is_expected.to match(%r{hello-world})
-          is_expected.to match(%r{candidate})
-          is_expected.not_to match(%r{held})
+          is_expected.to match(%r{name:\s+hello-world})
+          is_expected.to match(%r{tracking:\s+latest/candidate})
+          is_expected.not_to match(%r{hold:.*})
         end
       end
     end

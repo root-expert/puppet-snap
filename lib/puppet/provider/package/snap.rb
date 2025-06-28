@@ -19,10 +19,41 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
 
   mk_resource_methods
 
+  def self.prefetch(resources)
+    Puppet.info('Called prefetch')
+    # Build a hash of name => install_options from the catalog
+    desired_options = resources.transform_values { |res| res[:install_options] }
+
+    installed_snaps.each do |snap|
+      resource = resources[snap['name']]
+      next unless resource
+
+      current_hold_time = snap['hold']
+      desired_hold_time = parse_time_from_options(desired_options[snap['name']])
+
+      # Determine the appropriate mark
+      mark = if should_change_hold?(desired_hold_time, current_hold_time)
+               :none # force re-hold
+             else
+               :hold
+             end
+
+      provider = new(
+        name: snap['name'],
+        ensure: snap['tracking-channel'],
+        mark: mark,
+        hold_time: current_hold_time,
+        provider: 'snap'
+      )
+
+      resource.provider = provider
+    end
+  end
+
   def self.instances
     installed_snaps.map do |snap|
-      mark = snap['hold'].nil? ? 'none' : 'hold'
-      Puppet.info("refresh-inhibit = #{mark}")
+      mark = snap['hold'].nil? ? :none : :hold
+      Puppet.info("name = #{snap['name']}, refresh-inhibit = #{mark}")
       new(name: snap['name'], ensure: snap['tracking-channel'], mark: mark, hold_time: snap['hold'], provider: 'snap')
     end
   end
@@ -65,12 +96,13 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     Puppet.info('called hold')
     Puppet.info("@property_hash = #{@property_hash}")
     Puppet.info("install_options = #{@resource[:install_options]}")
-    modify_snap('hold') if should_change_hold?(@resource[:install_options])
+    modify_snap('hold')
+    # @property_hash[:mark] = 'hold'
   end
 
   def unhold
     Puppet.info('called unhold')
-    modify_snap('unhold') unless @property_hash[:mark].equal?('none')
+    modify_snap('unhold')
   end
 
   def modify_snap(action, options = @resource[:install_options])
@@ -103,7 +135,7 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
       when 'remove'
         request['purge'] = true if options.include?('purge')
       when 'hold'
-        time = parse_time_from_options(options)
+        time = self.class.parse_time_from_options(options)
         request['time'] = time
       end
     elsif action.equal?('hold')
@@ -139,18 +171,20 @@ Puppet::Type.type(:package).provide :snap, parent: Puppet::Provider::Package do
     end
   end
 
-  def should_change_hold?(options)
+  def self.should_change_hold?(options, current_hold_time)
     should_hold_time = self.class.parse_time_from_options(options)
-    current_hold_time = @property_hash[:hold_time]
+    # current_hold_time = @property_hash[:hold_time]
+
+    # if current hold time is nil we are fresh holding this snap
+    return true if current_hold_time.nil?
 
     parsed_hold_time = DateTime.parse(current_hold_time)
     # If the hold time is more than 100 years, assume "forever"
     current_hold_time = 'forever' if (parsed_hold_time - DateTime.now).to_i > 365 * 100
 
     Puppet.info("should = #{should_hold_time}, current = #{current_hold_time}")
-
-    false if current_hold_time == should_hold_time
-    true
+    Puppet.info("equal = #{current_hold_time == should_hold_time}")
+    current_hold_time != should_hold_time
   end
 
   def self.channel_from_options(options)
